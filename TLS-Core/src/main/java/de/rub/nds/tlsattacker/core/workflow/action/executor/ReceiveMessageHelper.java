@@ -74,6 +74,7 @@ public class ReceiveMessageHelper {
             boolean shouldContinue = true;
             do {
                 receivedBytes = receiveByteArray(context);
+
                 MessageActionResult tempResult = handleReceivedBytes(receivedBytes, context);
                 result = result.merge(tempResult);
                 if (context.getConfig().isQuickReceive() && !expectedMessages.isEmpty()) {
@@ -112,7 +113,7 @@ public class ReceiveMessageHelper {
                 }
             } while (receivedBytes.length != 0 && shouldContinue);
         } catch (IOException ex) {
-            LOGGER.warn("Received " + ex.getLocalizedMessage() + " while recieving for Messages.");
+            LOGGER.warn("Received Till " + ex.getLocalizedMessage() + " while recieving for Messages.");
             LOGGER.debug(ex);
             context.setReceivedTransportHandlerException(true);
         }
@@ -159,7 +160,7 @@ public class ReceiveMessageHelper {
             } while (receivedBytes.length != 0);
 
         } catch (IOException ex) {
-            LOGGER.warn("Received " + ex.getLocalizedMessage() + " while recieving for Messages.", ex);
+            LOGGER.warn("Received records" + ex.getLocalizedMessage() + " while recieving for Messages.", ex);
             context.setReceivedTransportHandlerException(true);
         }
         return realRecords;

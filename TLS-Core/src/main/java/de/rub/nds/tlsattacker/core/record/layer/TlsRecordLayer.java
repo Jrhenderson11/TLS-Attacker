@@ -154,6 +154,7 @@ public class TlsRecordLayer extends RecordLayer {
 
     @Override
     public void setRecordCipher(RecordCipher cipher) {
+        LOGGER.debug("SETTING RECORD LAYER CIPHER NOW");
         this.cipher = cipher;
     }
 
@@ -163,11 +164,13 @@ public class TlsRecordLayer extends RecordLayer {
 
     @Override
     public void updateEncryptionCipher() {
+        LOGGER.debug("UPDATING RECORD LAYER ENCRYPT CIPHER NOW");
         encryptor.addNewRecordCipher(cipher);
     }
 
     @Override
     public void updateDecryptionCipher() {
+        LOGGER.debug("UPDATING RECORD LAYER DECRYPT CIPHER NOW");
         decryptor.addNewRecordCipher(cipher);
     }
 

@@ -107,6 +107,7 @@ public abstract class Serializer<T> {
      *            bytes that should be added
      */
     protected final void appendBytes(byte[] bytes) {
+        LOGGER.debug("serializer writing");
         try {
             outputStream.write(bytes);
         } catch (IOException ex) {

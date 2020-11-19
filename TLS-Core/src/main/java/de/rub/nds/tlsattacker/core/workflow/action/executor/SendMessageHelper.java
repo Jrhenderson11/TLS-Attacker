@@ -9,6 +9,7 @@
  */
 package de.rub.nds.tlsattacker.core.workflow.action.executor;
 
+import de.rub.nds.modifiablevariable.util.ArrayConverter;
 import de.rub.nds.tlsattacker.core.constants.ProtocolMessageType;
 import de.rub.nds.tlsattacker.core.dtls.MessageFragmenter;
 import de.rub.nds.tlsattacker.core.protocol.handler.ProtocolMessageHandler;
@@ -38,6 +39,9 @@ public class SendMessageHelper {
 
     public MessageActionResult sendMessages(List<ProtocolMessage> messages, List<AbstractRecord> records,
             TlsContext context, boolean prepareMessages) throws IOException {
+
+        LOGGER.debug("MESSAGE LEN: " + messages.size());
+        LOGGER.debug("RECORD LEN: " + records.size());
         List<DtlsHandshakeMessageFragment> fragmentMessages = new LinkedList<>();
         context.setTalkingConnectionEndType(context.getChooser().getConnectionEndType());
         if (records == null) {
@@ -98,6 +102,7 @@ public class SendMessageHelper {
             lastMessage.getHandler(context).adjustTlsContextAfterSerialize(lastMessage);
         }
         sendData(messageBytesCollector, context);
+        LOGGER.debug("SENT DATA");
         if (context.getConfig().isUseAllProvidedRecords() && recordPosition < records.size()) {
             int current = 0;
             for (AbstractRecord record : records) {
@@ -141,19 +146,30 @@ public class SendMessageHelper {
 
     private int flushBytesToRecords(MessageBytesCollector collector, ProtocolMessageType type,
             List<AbstractRecord> records, int recordPosition, TlsContext context) {
-        int length = collector.getProtocolMessageBytesStream().length;
+        LOGGER.debug("FLUSH CALLED");
+        int length = collector.getProtocolMessageBytesStream().length; // 0 for
+                                                                       // emptu
+                                                                       // appdata
         List<AbstractRecord> toFillList = getEnoughRecords(length, recordPosition, records, context);
+
+        LOGGER.debug("toFillList.size(): " + toFillList.size());
+
         collector.appendRecordBytes(context.getRecordLayer().prepareRecords(collector.getProtocolMessageBytesStream(),
                 type, toFillList));
+
         collector.flushProtocolMessageBytes();
+
         return recordPosition + toFillList.size();
     }
 
+    /*
+     * Generate empty records, enough for data length
+     */
     private List<AbstractRecord> getEnoughRecords(int length, int position, List<AbstractRecord> records,
             TlsContext context) {
         List<AbstractRecord> toFillList = new LinkedList<>();
         int recordLength = 0;
-        while (recordLength < length) {
+        if (length == 0 && position == 0) {
             if (position >= records.size()) {
                 if (context.getConfig().isCreateRecordsDynamically()) {
                     LOGGER.trace("Creating new Record");
@@ -169,7 +185,27 @@ public class SendMessageHelper {
             }
             recordLength += record.getMaxRecordLengthConfig();
             position++;
+            return toFillList;
+        } else {
+            while (recordLength < length) {
+                if (position >= records.size()) {
+                    if (context.getConfig().isCreateRecordsDynamically()) {
+                        LOGGER.trace("Creating new Record");
+                        records.add(context.getRecordLayer().getFreshRecord());
+                    } else {
+                        return toFillList;
+                    }
+                }
+                AbstractRecord record = records.get(position);
+                toFillList.add(record);
+                if (record.getMaxRecordLengthConfig() == null) {
+                    record.setMaxRecordLengthConfig(context.getConfig().getDefaultMaxRecordData());
+                }
+                recordLength += record.getMaxRecordLengthConfig();
+                position++;
+            }// } while (recordLength < length);
         }
+
         return toFillList;
     }
 
@@ -185,6 +221,7 @@ public class SendMessageHelper {
      *             Thrown if something goes wrong while sending
      */
     private void sendData(MessageBytesCollector collector, TlsContext context) throws IOException {
+        LOGGER.debug("SENDING:  " + ArrayConverter.bytesToHexString(collector.getRecordBytes()));
         context.getTransportHandler().sendData(collector.getRecordBytes());
         collector.flushRecordBytes();
     }

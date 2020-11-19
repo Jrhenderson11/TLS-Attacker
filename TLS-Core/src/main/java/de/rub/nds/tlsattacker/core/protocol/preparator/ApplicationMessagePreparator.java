@@ -35,10 +35,10 @@ public class ApplicationMessagePreparator extends ProtocolMessagePreparator<Appl
     private void prepareData(ApplicationMessage msg) {
         if (msg.getDataConfig() != null) {
             msg.setData(msg.getDataConfig());
+
         } else {
             msg.setData(chooser.getLastHandledApplicationMessageData());
         }
         LOGGER.debug("Data: " + ArrayConverter.bytesToHexString(msg.getData().getValue()));
     }
-
 }

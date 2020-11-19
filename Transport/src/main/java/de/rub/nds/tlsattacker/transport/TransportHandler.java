@@ -85,6 +85,7 @@ public abstract class TransportHandler {
                         int read = inStream.read();
                         if (read == -1) {
                             // TCP FIN
+                            LOGGER.debug("FIN RECVD");
                             return stream.toByteArray();
                         }
                         inStream.unread(read);

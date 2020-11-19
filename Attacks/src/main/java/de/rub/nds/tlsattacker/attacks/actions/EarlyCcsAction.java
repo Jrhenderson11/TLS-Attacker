@@ -53,7 +53,7 @@ public class EarlyCcsAction extends TlsAction {
 
     /**
      * Sends a ClientKeyExchange message depending on the currently selected
-     * ciphersuite. Depening on the target version cryptographic material is
+     * ciphersuite. Depending on the target version cryptographic material is
      * adjusted.
      *
      * @param state
